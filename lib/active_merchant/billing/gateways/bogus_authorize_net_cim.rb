@@ -1,61 +1,92 @@
 module ActiveMerchant
   module Billing
     class BogusAuthorizeNetCimGateway < BogusGateway
-      @@customers = {}
+      # CUSTOMER PROFILE
+      @@customer_profiles = {}
       def create_customer_profile( opts )
         profile = opts[:profile]
-        cim_id = profile.hash.to_s
-        @@customers[cim_id] = {}
-        update_customer_profile :profile => profile.merge( :customer_profile_id => cim_id )
+        customer_id = profile.hash.to_s
+        @@customer_profiles[customer_id] = {}
+        update_customer_profile :profile => profile.merge( :customer_profile_id => customer_id )
       end
 
       def update_customer_profile( opts )
         profile = opts[:profile]
-        cim_id = profile.delete(:customer_profile_id)
-        unless cim_id && @@customers.include?(cim_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{cim_id}" }, :test => true )
+        customer_id = profile[:customer_profile_id]
+        unless customer_id && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
 
-        @@customers[cim_id] = profile
-        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => cim_id, :test => true )
+        @@customer_profiles[customer_id] = profile
+        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => customer_id, :test => true )
       end
 
       def delete_customer_profile( opts )
         profile = opts[:profile]
-        cim_id = profile[:customer_profile_id]
-        unless cim_id && @@customers.include?(cim_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{cim_id}" }, :test => true )
+        unless (customer_id = profile[:customer_profile_id]).present && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
-        @@customers.delete cim_id
+        @@customer_profiles.delete customer_id
         Response.new( true, SUCCESS_MESSAGE, {}, :test => true )
       end
 
-
       @@payments = {}
-      def create_customer_payment_profile( profile )
-        cim_id = profile.hash
-        @@payments[cim_id] = profile
-        Response.new( true, SUCCESS_MESSAGE, { 'customer_payment_profile_id' => cim_id }, :test => true )
-      end
+      def self.payments()  @@payments  end
 
-      def update_customer_payment_profile( profile )
-        cim_id = profile[:customer_profile_id]
-        unless cim_id && @@payments.include?(cim_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{cim_id}" }, :test => true )
+      def create_customer_profile_transaction( opts )
+        txn = opts[:transaction]
+        unless (customer_id = txn[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+        end
+        unless (profile_id = txn[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
         end
 
-        @@payments[cim_id] = profile
-        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => cim_id, :test => true )
+        (@@payments[customer_id] ||= []) << txn[:amount]
+        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => txn.hash.to_s, :test => true )
+      end
+
+      # CUSTOMER PAYMENT PROFILE
+      @@payment_profiles = {}
+      def create_customer_payment_profile( opts )
+        unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+        end
+
+        profile = opts[:payment_profile]
+        profile_id = profile.hash.to_s
+        @@payment_profiles[profile_id] = profile
+        Response.new( true, SUCCESS_MESSAGE, { 'customer_payment_profile_id' => profile_id }, :test => true )
+      end
+
+      def update_customer_payment_profile( opts )
+        unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+        end
+
+        profile = opts[:payment_profile]
+        unless (profile_id = profile[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
+        end
+
+        @@payment_profiles[profile_id] = profile
+        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => profile_id, :test => true )
       end
 
       def delete_customer_payment_profile( opts )
-        cim_id = profile[:customer_profile_id]
-        unless cim_id && @@customers.include?(cim_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{cim_id}" }, :test => true )
+        unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
-        @@payments.delete cim_id
+
+        profile = opts[:payment_profile]
+        unless (profile_id = profile[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
+          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
+        end
+
+        @@payment_profiles.delete profile_id
         Response.new( true, SUCCESS_MESSAGE, {}, :test => true )
       end
+
     end
   end
 end
