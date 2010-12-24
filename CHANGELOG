@@ -1,5 +1,27 @@
 = ActiveMerchant CHANGELOG
 
+== Version 1.9.3 (December 17, 2010)
+
+* Fix BBS Netaxept to change transaction type from C (for MOTO: mail order telephone order) to M (for credit card orders) [Soleone]
+* Fix Iridium and ePay to work with any object that responds to credit card methods not only ActiveMerchant::CreditCard objects
+
+== Version 1.9.2 (December 9, 2010)
+
+* Add support for PayPal mobile payments [Adrian Irving-Beer]
+* Add ePay gateway [ePay, Jonathan Rudenberg]
+* Allow access to the raw HTTP response [Jonathan Rudenberg]
+
+== Version 1.9.1 (November 24, 2010)
+
+* PayPal Express and PayPal Pro: Send JPY currency correctly without decimals [Soleone]
+* Netaxept: Make sure password (token) is URL escaped and update remote tests for updated server behavior [Soleone]
+* DirecPay: Add support for additional options in Return class and add convenience method to get transaction status update [Soleone]
+* Add new alias credit_card.brand for credit_card.type and handle the brand correctly in Netaxept [Soleone]
+* Iridium: Do not depend on ExpiryDate class for credit_card [Soleone]
+* PayFlow: Use same timeout of 60 seconds in HTTP header and XML for all requests [Soleone]
+* PayPal Website Payments Pro CA no longer supports American Express cards [Soleone]
+* Updated BIN ranges for Discover to match recent documents [kaunartist]
+
 == Version 1.9.0 (October 14, 2010)
 
 * Add support for DirecPay gateway [Soleone]
