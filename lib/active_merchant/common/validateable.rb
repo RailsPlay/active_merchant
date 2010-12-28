@@ -50,7 +50,7 @@ module ActiveMerchant #:nodoc:
         self[field].to_a.first
       end
 
-      def add(field, error)
+      def add(field, error, options = {})
         self[field] << error
       end
 
