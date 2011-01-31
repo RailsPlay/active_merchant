@@ -42,7 +42,7 @@ module ActiveMerchant
           return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
         end
 
-        (@@payments[customer_id] ||= []) << txn[:amount]
+        (@@payments[customer_id] ||= []) << txn
         Response.new( true, SUCCESS_MESSAGE, {}, :authorization => txn.hash.to_s, :test => true )
       end
 
