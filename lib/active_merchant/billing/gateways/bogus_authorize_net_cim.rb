@@ -14,7 +14,7 @@ module ActiveMerchant
         profile = opts[:profile]
         customer_id = profile[:customer_profile_id]
         unless customer_id && @@customer_profiles.include?(customer_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
 
         @@customer_profiles[customer_id] = profile
@@ -36,21 +36,22 @@ module ActiveMerchant
       def create_customer_profile_transaction( opts )
         txn = opts[:transaction]
         unless (customer_id = txn[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
         unless (profile_id = txn[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
         end
-
         (@@payments[customer_id] ||= []) << txn
-        Response.new( true, SUCCESS_MESSAGE, {}, :authorization => txn.hash.to_s, :test => true )
+
+        resp = { 'transaction_id' => txn.hash.to_s, 'approval_code' => 'AB9XYZ' }
+        Response.new( true, SUCCESS_MESSAGE, { 'direct_response' => resp }, :test => true )
       end
 
       # CUSTOMER PAYMENT PROFILE
       @@payment_profiles = {}
       def create_customer_payment_profile( opts )
         unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
 
         profile = opts[:payment_profile]
@@ -61,12 +62,12 @@ module ActiveMerchant
 
       def update_customer_payment_profile( opts )
         unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
 
         profile = opts[:payment_profile]
         unless (profile_id = profile[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
         end
 
         @@payment_profiles[profile_id] = profile
@@ -75,12 +76,12 @@ module ActiveMerchant
 
       def delete_customer_payment_profile( opts )
         unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer profile: #{customer_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
         end
 
         profile = opts[:payment_profile]
         unless (profile_id = profile[:customer_payment_profile_id]).present? && @@payment_profiles.include?(profile_id)
-          return Response.new( false, FAILURE_MESSAGE, {:error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
+          return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer payment profile: #{profile_id}" }, :test => true )
         end
 
         @@payment_profiles.delete profile_id
