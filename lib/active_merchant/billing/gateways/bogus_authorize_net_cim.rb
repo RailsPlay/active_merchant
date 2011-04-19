@@ -3,6 +3,8 @@ module ActiveMerchant
     class BogusAuthorizeNetCimGateway < BogusGateway
       # CUSTOMER PROFILE
       @@customer_profiles = {}
+      def self.customer_profiles()  @@customer_profiles  end
+
       def create_customer_profile( opts )
         profile = opts[:profile]
         customer_id = profile.hash.to_s
@@ -30,6 +32,7 @@ module ActiveMerchant
         Response.new( true, SUCCESS_MESSAGE, {}, :test => true )
       end
 
+      # PAYMENTS
       @@payments = {}
       def self.payments()  @@payments  end
 
@@ -49,6 +52,8 @@ module ActiveMerchant
 
       # CUSTOMER PAYMENT PROFILE
       @@payment_profiles = {}
+      def self.payment_profiles()  @@payment_profiles  end
+
       def create_customer_payment_profile( opts )
         unless (customer_id = opts[:customer_profile_id]).present? && @@customer_profiles.include?(customer_id)
           return Response.new( false, FAILURE_MESSAGE, { :error => "Unknown customer profile: #{customer_id}" }, :test => true )
